@@ -16,9 +16,30 @@ window.ToDoList = {
       method: 'POST',
       contentType: 'application/json',
       data: JSON.stringify(requestBody)
-    }).done(function (response) {
-      console.log('success');
-      console.log(response);
+    }).done(function () {
+      ToDoList.getTasks();
+    });
+  },
+
+  updateTask: function (id, done) {
+    const requestBody = {done: done};
+
+    $.ajax({
+      url: ToDoList.API_URL + '?id' + id,
+      method: 'PUT',
+      contentType: 'application/json',
+      data: JSON.stringify(requestBody)
+    }).done(function () {
+      ToDoList.getTasks();
+    });
+  },
+
+  deleteTask: function (id) {
+    $.ajax({
+      url: ToDoList.API_URL + '?id' + id,
+      method: 'DELETE',
+    }).done(function () {
+      ToDoList.getTasks();
     });
   },
 
@@ -55,23 +76,42 @@ window.ToDoList = {
         <td>${task.description}</td>
         <td>${formattedDeadline}</td>
         <td>
-          <input type="checkbox" class="mark-done" data-id=$(task.id).${checkedAttribute>
+          <input type="checkbox" class="mark-done" data-id=${task.id} ${checkedAttribute}>
         </td>
         <td>
-          <a href="#" class="remove-task" data-id=$(task.id)>
+          <a href="#" class="remove-task" data-id=${task.id}>
             <i class="fas fa-trash-alt"></i>
           </a>
         </td>
-      </tr>`
-    
-  },
+      </tr>`;
+    },
 
   bindEvents: function () {
-    $('#create-task-form').submit( function (event) {
+    $('#create-task-form').submit(function (event) {
       event.preventDefault();
       ToDoList.createTask();
     });
+
+    //delegate is necessary because .mark-done element is dynamically injected in the page
+    $('#tasks-table tbody').delegate('.mark-done', 'change', function (event) {
+      event.preventDefault();
+
+      let id = $(this).data('id');
+      let checked = $(this).is(':checked');
+
+      ToDoList.updateTask(id, checked);
+    });
+
+    $('#tasks-table tbody').delegate('.remove-task', 'click', function (event) {
+      event.preventDefault();
+
+      let id = $(this).data('id');
+
+      ToDoList.deleteTask(id);
+    });
+
   }
+
 };
 
 ToDoList.getTasks(); 
